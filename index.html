@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f2">
+
+<title>FinanzOS</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FinanzOS">
+
+<style>
+:root{
+  --bg:#f5f5f2;
+  --card:#fff;
+  --text:#111;
+  --muted:#777;
+  --line:#e4e4df;
+  --soft:#ecece8;
+  --green:#168a58;
+  --red:#b74b4b;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+}
+
+body.dark{
+  --bg:#090909;
+  --card:#161616;
+  --text:#f4f4f4;
+  --muted:#999;
+  --line:#292929;
+  --soft:#252525;
+}
+
+.app{
+  max-width:480px;
+  min-height:100vh;
+  margin:auto;
+  padding:
+    calc(10px + env(safe-area-inset-top))
+    18px
+    calc(95px + env(safe-area-inset-bottom));
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 2px 14px;
+}
+
+.logo{
+  font-size:19px;
+  font-weight:700;
+}
+
+.theme{
+  border:0;
+  background:var(--card);
+  color:var(--text);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  font-size:18px;
+}
+
+.tab{display:none}
+.tab.active{display:block}
+
+.eyebrow{
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:.4px;
+  margin-top:24px;
+}
+
+.big{
+  font-size:44px;
+  font-weight:650;
+  letter-spacing:-2px;
+  margin:4px 0;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+}
+
+h2{
+  margin:30px 0 11px;
+  font-size:20px;
+}
+
+.chart{
+  height:165px;
+  margin:20px 0 5px;
+}
+
+.chart svg{
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+
+#chartLine{
+  fill:none;
+  stroke:var(--text);
+  stroke-width:2.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.list{
+  background:var(--card);
+  border-radius:18px;
+  overflow:hidden;
+}
+
+.row{
+  width:100%;
+  border:0;
+  border-bottom:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+  padding:17px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+}
+
+.row:last-child{border-bottom:0}
+
+.row:active{opacity:.55}
+
+.left{
+  font-size:16px;
+}
+
+.left small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+  font-size:12px;
+}
+
+.right{
+  font-size:16px;
+  font-weight:600;
+}
+
+.red{color:var(--red)}
+
+.cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:18px;
+}
+
+.cardLabel{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.4px;
+}
+
+.metric{
+  font-size:29px;
+  font-weight:650;
+  margin-top:8px;
+}
+
+.card p{
+  color:var(--muted);
+  font-size:13px;
+  margin:5px 0 0;
+}
+
+.progress{
+  height:7px;
+  border-radius:10px;
+  background:var(--soft);
+  margin-top:15px;
+  overflow:hidden;
+}
+
+.progress span{
+  display:block;
+  height:100%;
+  background:var(--text);
+  border-radius:10px;
+}
+
+.planCard{
+  background:var(--card);
+  border-radius:18px;
+  margin-top:24px;
+  padding:2px 18px;
+}
+
+.planRow{
+  display:flex;
+  justify-content:space-between;
+  padding:16px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.planRow:last-child{border-bottom:0}
+
+.cta{
+  width:100%;
+  border:0;
+  border-radius:999px;
+  padding:16px;
+  margin-top:15px;
+  background:var(--text);
+  color:var(--bg);
+  font-weight:650;
+  font-size:15px;
+}
+
+.form{
+  background:var(--card);
+  border-radius:18px;
+  overflow:hidden;
+  margin-top:24px;
+}
+
+.field{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px;
+  border-bottom:1px solid var(--line);
+}
+
+.field:last-child{border:0}
+
+.inputWrap{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-weight:600;
+}
+
+input{
+  width:100px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--text);
+  text-align:right;
+  font:inherit;
+  font-weight:600;
+}
+
+.historyItem{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.historyItem:last-child{border:0}
+
+.historyItem small{
+  display:block;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+.rules .row{
+  cursor:default;
+}
+
+nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(480px,100%);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  background:rgba(250,250,247,.94);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+}
+
+body.dark nav{
+  background:rgba(12,12,12,.94);
+}
+
+nav button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:7px;
+  font-size:11px;
+}
+
+nav button strong{
+  display:block;
+  font-size:21px;
+  font-weight:400;
+  margin-bottom:2px;
+}
+
+nav button.active{
+  color:var(--text);
+}
+
+dialog{
+  width:min(440px,calc(100% - 24px));
+  border:0;
+  border-radius:24px;
+  padding:22px;
+  background:var(--bg);
+  color:var(--text);
+}
+
+dialog::backdrop{
+  background:rgba(0,0,0,.45);
+}
+
+.dialogTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.dialogTop h2{
+  margin:0;
+}
+
+.close{
+  border:0;
+  border-radius:50%;
+  width:36px;
+  height:36px;
+  background:var(--card);
+  color:var(--text);
+  font-size:20px;
+}
+
+.dialogFields{
+  background:var(--card);
+  border-radius:18px;
+  overflow:hidden;
+  margin-top:20px;
+}
+
+.reset{
+  margin-top:25px;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:10px 0;
+}
+
+.success{
+  background:var(--card);
+  border-radius:18px;
+  padding:18px;
+  margin-top:20px;
+}
+
+@media (display-mode:standalone){
+  header{padding-top:5px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">FinanzOS</div>
+  <button class="theme" onclick="toggleTheme()">◐</button>
+</header>
+
+<!-- ÜBERSICHT -->
+
+<section id="overview" class="tab active">
+
+<div class="eyebrow">NETTOVERMÖGEN</div>
+<div class="big" id="netWorth">−5.100 €</div>
+<div class="sub" id="netChange">Startstand · 30.09.2026</div>
+
+<div class="chart">
+<svg viewBox="0 0 440 165" preserveAspectRatio="none">
+  <line x1="0" y1="155" x2="440" y2="155"
+        stroke="var(--line)" stroke-width="1"/>
+  <path id="chartLine" d="M0 145 L440 145"/>
+</svg>
+</div>
+
+<h2>Vermögen</h2>
+
+<div class="list">
+
+<button class="row" onclick="openAsset('dep')">
+  <span class="left">
+    Depot
+    <small>Langfristiges Vermögen</small>
+  </span>
+  <span class="right" id="depDisplay"></span>
+</button>
+
+<button class="row" onclick="openAsset('day')">
+  <span class="left">
+    Tagesgeld
+    <small>Notgroschen & Rücklagen</small>
+  </span>
+  <span class="right" id="dayDisplay"></span>
+</button>
+
+<button class="row" onclick="openAsset('giro')">
+  <span class="left">Girokonto</span>
+  <span class="right" id="giroDisplay"></span>
+</button>
+
+</div>
+
+<h2>Verbindlichkeiten</h2>
+
+<div class="list">
+
+<button class="row" onclick="openAsset('debt')">
+  <span class="left">
+    Audi TT
+    <small>0 % · 250 €/Monat</small>
+  </span>
+  <span class="right red" id="debtDisplay"></span>
+</button>
+
+</div>
+
+<h2>Ziele</h2>
+
+<div class="cards">
+
+<div class="card">
+  <div class="cardLabel">NOTGROSCHEN</div>
+  <div class="metric" id="emergencyPercent">67 %</div>
+  <p id="emergencyText"></p>
+  <div class="progress">
+    <span id="emergencyBar"></span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardLabel">IMMOBILIE</div>
+  <div class="metric">~35</div>
+  <p>Planungsbeginn</p>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PLAN -->
+
+<section id="plan" class="tab">
+
+<div class="eyebrow">MONATLICHER PLAN</div>
+<div class="big" id="buildDisplay"></div>
+<div class="sub">Vermögensaufbau inkl. Tilgung</div>
+
+<div class="planCard">
+
+<div class="planRow">
+  <span>Investieren</span>
+  <b id="investDisplay"></b>
+</div>
+
+<div class="planRow">
+  <span>Rücklagen</span>
+  <b id="reserveDisplay"></b>
+</div>
+
+<div class="planRow">
+  <span>Audi</span>
+  <b id="repayDisplay"></b>
+</div>
+
+<div class="planRow">
+  <span>Plan-Netto</span>
+  <b id="incomeDisplay"></b>
+</div>
+
+<div class="planRow">
+  <span>Verfügbar</span>
+  <b id="freeDisplay"></b>
+</div>
+
+</div>
+
+<button class="cta" onclick="openPlan()">Plan bearbeiten</button>
+
+<h2>Regeln</h2>
+
+<div class="list rules">
+
+<div class="row">
+  <span class="left">Gehaltserhöhung</span>
+  <span class="right">70 / 30</span>
+</div>
+
+<div class="row">
+  <span class="left">Sonderzahlungen</span>
+  <span class="right">50 / 30 / 20</span>
+</div>
+
+<div class="row">
+  <span class="left">Notgroschen</span>
+  <span class="right">3.000 €</span>
+</div>
+
+<div class="row">
+  <span class="left">Immobilie</span>
+  <span class="right">ab ~35</span>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- TÜV -->
+
+<section id="tuv" class="tab">
+
+<div class="eyebrow">FINANZ-TÜV</div>
+<div class="big">5 Werte</div>
+<div class="sub">Neuen Finanzstand speichern</div>
+
+<div class="form">
+
+<div class="field">
+  <span>Girokonto</span>
+  <span class="inputWrap">
+    <input id="giroInput" type="number">
+    €
+  </span>
+</div>
+
+<div class="field">
+  <span>Tagesgeld</span>
+  <span class="inputWrap">
+    <input id="dayInput" type="number">
+    €
+  </span>
+</div>
+
+<div class="field">
+  <span>Depot</span>
+  <span class="inputWrap">
+    <input id="depInput" type="number">
+    €
+  </span>
+</div>
+
+<div class="field">
+  <span>Audi offen</span>
+  <span class="inputWrap">
+    <input id="debtInput" type="number">
+    €
+  </span>
+</div>
+
+<div class="field">
+  <span>Monatsnetto</span>
+  <span class="inputWrap">
+    <input id="incomeInput" type="number">
+    €
+  </span>
+</div>
+
+</div>
+
+<button class="cta" onclick="saveTuv()">TÜV abschließen</button>
+
+<div id="saveMessage"></div>
+
+<h2>Historie</h2>
+
+<div class="card" id="history"></div>
+
+<button class="reset" onclick="resetApp()">Lokale Daten zurücksetzen</button>
+
+</section>
+
+</div>
+
+
+<!-- NAVIGATION -->
+
+<nav>
+
+<button class="active" onclick="showTab('overview',this)">
+  <strong>⌂</strong>
+  Übersicht
+</button>
+
+<button onclick="showTab('plan',this)">
+  <strong>≡</strong>
+  Plan
+</button>
+
+<button onclick="showTab('tuv',this)">
+  <strong>✓</strong>
+  Finanz-TÜV
+</button>
+
+</nav>
+
+
+<!-- DIALOG -->
+
+<dialog id="dialog">
+
+<div class="dialogTop">
+  <h2 id="dialogTitle"></h2>
+  <button class="close" onclick="closeDialog()">×</button>
+</div>
+
+<div id="dialogBody"></div>
+
+</dialog>
+
+
+<script>
+
+const initialState = {
+  giro:500,
+  day:2000,
+  dep:4400,
+  debt:12000,
+  income:2750,
+  invest:800,
+  reserve:500,
+  repay:250
+};
+
+const initialHistory = [{
+  date:"30.09.2026",
+  giro:500,
+  day:2000,
+  dep:4400,
+  debt:12000,
+  income:2750,
+  net:-5100
+}];
+
+let state =
+  JSON.parse(localStorage.getItem("finanzos-state"))
+  || {...initialState};
+
+let history =
+  JSON.parse(localStorage.getItem("finanzos-history"))
+  || [...initialHistory];
+
+
+function euro(value){
+  const n = Math.round(Number(value) || 0);
+  return (n < 0 ? "−" : "")
+    + Math.abs(n).toLocaleString("de-DE")
+    + " €";
+}
+
+
+function netWorth(){
+  return Number(state.giro)
+       + Number(state.day)
+       + Number(state.dep)
+       - Number(state.debt);
+}
+
+
+function saveLocal(){
+  localStorage.setItem(
+    "finanzos-state",
+    JSON.stringify(state)
+  );
+
+  localStorage.setItem(
+    "finanzos-history",
+    JSON.stringify(history)
+  );
+}
+
+
+function showTab(id,button){
+
+  document
+    .querySelectorAll(".tab")
+    .forEach(x=>x.classList.remove("active"));
+
+  document
+    .getElementById(id)
+    .classList.add("active");
+
+  document
+    .querySelectorAll("nav button")
+    .forEach(x=>x.classList.remove("active"));
+
+  button.classList.add("active");
+
+  window.scrollTo(0,0);
+}
+
+
+function render(){
+
+  const net = netWorth();
+
+  document.getElementById("netWorth").textContent =
+    euro(net);
+
+  document.getElementById("depDisplay").textContent =
+    euro(state.dep);
+
+  document.getElementById("dayDisplay").textContent =
+    euro(state.day);
+
+  document.getElementById("giroDisplay").textContent =
+    euro(state.giro);
+
+  document.getElementById("debtDisplay").textContent =
+    euro(-state.debt);
+
+
+  const build =
+    Number(state.invest)
+    + Number(state.reserve)
+    + Number(state.repay);
+
+  document.getElementById("buildDisplay").textContent =
+    euro(build);
+
+  document.getElementById("investDisplay").textContent =
+    euro(state.invest);
+
+  document.getElementById("reserveDisplay").textContent =
+    euro(state.reserve);
+
+  document.getElementById("repayDisplay").textContent =
+    euro(state.repay);
+
+  document.getElementById("incomeDisplay").textContent =
+    euro(state.income);
+
+  document.getElementById("freeDisplay").textContent =
+    euro(Number(state.income)-build);
+
+
+  const emergency =
+    Math.min(100,(Number(state.day
