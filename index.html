@@ -773,5 +773,368 @@ function render(){
     euro(Number(state.income)-build);
 
 
-  const emergency =
-    Math.min(100,(Number(state.day
+    const emergency =
+    Math.min(100,(Number(state.day) / 3000) * 100);
+
+  document.getElementById("emergencyPercent").textContent =
+    Math.round(emergency) + " %";
+
+  document.getElementById("emergencyText").textContent =
+    euro(state.day).replace(" €","") + " / 3.000 €";
+
+  document.getElementById("emergencyBar").style.width =
+    emergency + "%";
+
+
+  document.getElementById("giroInput").value =
+    state.giro;
+
+  document.getElementById("dayInput").value =
+    state.day;
+
+  document.getElementById("depInput").value =
+    state.dep;
+
+  document.getElementById("debtInput").value =
+    state.debt;
+
+  document.getElementById("incomeInput").value =
+    state.income;
+
+
+  if(history.length > 1){
+
+    const previous =
+      history[history.length-2].net;
+
+    const difference =
+      net - previous;
+
+    document.getElementById("netChange").textContent =
+      (difference >= 0 ? "+" : "")
+      + euro(difference)
+      + " seit letztem TÜV";
+
+  } else {
+
+    document.getElementById("netChange").textContent =
+      "Startstand · 30.09.2026";
+  }
+
+
+  renderHistory();
+  
+}
+function saveTuv(){
+
+  state.giro =
+    Number(document.getElementById("giroInput").value) || 0;
+
+  state.day =
+    Number(document.getElementById("dayInput").value) || 0;
+
+  state.dep =
+    Number(document.getElementById("depInput").value) || 0;
+
+  state.debt =
+    Number(document.getElementById("debtInput").value) || 0;
+
+  state.income =
+    Number(document.getElementById("incomeInput").value) || 0;
+
+
+  const entry = {
+    date:new Date().toLocaleDateString("de-DE"),
+    giro:state.giro,
+    day:state.day,
+    dep:state.dep,
+    debt:state.debt,
+    income:state.income,
+    net:netWorth()
+  };
+
+
+  history.push(entry);
+
+  saveLocal();
+  render();
+
+
+  document.getElementById("saveMessage").innerHTML =
+    '<div class="success">'
+    + '<div class="cardLabel">FINANZ-TÜV ABGESCHLOSSEN</div>'
+    + '<div class="metric">' + euro(entry.net) + '</div>'
+    + '<p>Nettovermögen · ' + entry.date + '</p>'
+    + '</div>';
+}
+
+
+function renderHistory(){
+
+  const container =
+    document.getElementById("history");
+
+  container.innerHTML = "";
+
+
+  [...history]
+    .reverse()
+    .forEach((item,index)=>{
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        "historyItem";
+
+      const previousIndex =
+        history.length - index - 2;
+
+      let change = "";
+
+      if(previousIndex >= 0){
+
+        const difference =
+          item.net - history[previousIndex].net;
+
+        change =
+          '<small>'
+          + (difference >= 0 ? "+" : "")
+          + euro(difference)
+          + '</small>';
+      }
+
+
+      row.innerHTML =
+        '<div>'
+        + '<b>' + item.date + '</b>'
+        + change
+        + '</div>'
+        + '<strong>'
+        + euro(item.net)
+        + '</strong>';
+
+      container.appendChild(row);
+    });
+}
+
+
+function drawChart(){
+
+  const path =
+    document.getElementById("chartLine");
+
+
+  if(history.length === 1){
+
+    path.setAttribute(
+      "d",
+      "M0 130 L440 130"
+    );
+
+    return;
+  }
+
+
+  const values =
+    history.map(x=>x.net);
+
+  const min =
+    Math.min(...values);
+
+  const max =
+    Math.max(...values);
+
+  const spread =
+    Math.max(1,max-min);
+
+
+  const points =
+    values.map((value,index)=>{
+
+      const x =
+        (index/(values.length-1))*440;
+
+      const y =
+        145-((value-min)/spread)*120;
+
+      return [x,y];
+    });
+
+
+  const d =
+    points
+      .map((point,index)=>
+        (index === 0 ? "M" : "L")
+        + point[0].toFixed(1)
+        + " "
+        + point[1].toFixed(1)
+      )
+      .join(" ");
+
+
+  path.setAttribute("d",d);
+}
+
+
+function openAsset(type){
+
+  const titles = {
+    dep:"Depot",
+    day:"Tagesgeld",
+    giro:"Girokonto",
+    debt:"Audi TT"
+  };
+
+  const values = {
+    dep:state.dep,
+    day:state.day,
+    giro:state.giro,
+    debt:-state.debt
+  };
+
+
+  document.getElementById("dialogTitle").textContent =
+    titles[type];
+
+  document.getElementById("dialogBody").innerHTML =
+    '<div class="card" style="margin-top:20px">'
+    + '<div class="metric">'
+    + euro(values[type])
+    + '</div>'
+    + '</div>';
+
+  document.getElementById("dialog").showModal();
+}
+
+
+function closeDialog(){
+
+  document
+    .getElementById("dialog")
+    .close();
+
+function openPlan(){
+
+  document.getElementById("dialogTitle").textContent =
+    "Monatlichen Plan bearbeiten";
+
+  document.getElementById("dialogBody").innerHTML = `
+    <div class="dialogFields">
+
+      <div class="field">
+        <span>Monatsnetto</span>
+        <span class="inputWrap">
+          <input id="editIncome" type="number" value="${state.income}">
+          €
+        </span>
+      </div>
+
+      <div class="field">
+        <span>Investieren</span>
+        <span class="inputWrap">
+          <input id="editInvest" type="number" value="${state.invest}">
+          €
+        </span>
+      </div>
+
+      <div class="field">
+        <span>Rücklagen</span>
+        <span class="inputWrap">
+          <input id="editReserve" type="number" value="${state.reserve}">
+          €
+        </span>
+      </div>
+
+      <div class="field">
+        <span>Audi</span>
+        <span class="inputWrap">
+          <input id="editRepay" type="number" value="${state.repay}">
+          €
+        </span>
+      </div>
+
+    </div>
+
+    <button class="cta" onclick="savePlan()">
+      Änderungen speichern
+    </button>
+  `;
+
+  document.getElementById("dialog").showModal();
+}
+
+
+function savePlan(){
+
+  state.income =
+    Number(document.getElementById("editIncome").value) || 0;
+
+  state.invest =
+    Number(document.getElementById("editInvest").value) || 0;
+
+  state.reserve =
+    Number(document.getElementById("editReserve").value) || 0;
+
+  state.repay =
+    Number(document.getElementById("editRepay").value) || 0;
+
+  saveLocal();
+
+  render();
+
+  closeDialog();
+}
+
+
+function toggleTheme(){
+
+  document.body.classList.toggle("dark");
+
+  localStorage.setItem(
+    "finanzos-theme",
+    document.body.classList.contains("dark")
+      ? "dark"
+      : "light"
+  );
+}
+
+
+function resetApp(){
+
+  const confirmed =
+    confirm("Alle lokal gespeicherten FinanzOS-Daten zurücksetzen?");
+
+  if(!confirmed) return;
+
+
+  state =
+    {...initialState};
+
+  history =
+    [...initialHistory];
+
+  localStorage.removeItem("finanzos-state");
+  localStorage.removeItem("finanzos-history");
+
+  document.getElementById("saveMessage").innerHTML = "";
+
+  saveLocal();
+
+  render();
+}
+
+
+if(
+  localStorage.getItem("finanzos-theme") === "dark"
+){
+  document.body.classList.add("dark");
+}
+
+
+render();
+
+</script>
+
+</body>
+</html>
